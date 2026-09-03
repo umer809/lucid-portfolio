@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lucid — Minecraft Thumbnail Designer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #070b14;
+      --bg-elevated: #0d1220;
+      --bg-card: #111827;
+      --border: rgba(59,130,246,0.08);
+      --border-light: rgba(59,130,246,0.15);
+      --text: #f0f4ff;
+      --text-muted: #5a6a8a;
+      --accent: #3b82f6;
+      --accent-dim: rgba(59,130,246,0.15);
+      --accent-glow: rgba(59,130,246,0.3);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; width: 100%; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 60px;
+      background: rgba(7,11,20,0.8);
+      backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      font-weight: 800; font-size: 1rem; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--accent);
+    }
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links a {
+      color: var(--text-muted); text-decoration: none;
+      font-size: 0.85rem; font-weight: 500;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+
+    /* ── HERO SLIDESHOW ── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      justify-content: flex-end;
+      padding: 80px 60px 100px;
+      overflow: hidden;
+    }
+    .hero-slides {
+      position: absolute; inset: 0;
+    }
+    .hero-slide {
+      position: absolute; inset: 0;
+      background-size: cover; background-position: center;
+      opacity: 0;
+      transition: opacity 1.5s ease-in-out;
+      filter: blur(8px) brightness(0.25) saturate(1.3);
+      transform: scale(1.1);
+    }
+    .hero-slide.active { opacity: 1; }
+    .hero-slides::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(7,11,20,0.3) 0%, rgba(7,11,20,0.85) 70%, var(--bg) 100%);
+      z-index: 1;
+    }
+    .hero-content { position: relative; z-index: 2; max-width: 700px; }
+    .hero-label {
+      display: inline-block;
+      font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 4px; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 20px;
+      padding: 6px 16px;
+      border: 1px solid var(--border-light);
+      border-radius: 4px;
+    }
+    .hero h1 {
+      font-size: clamp(3.5rem, 8vw, 6.5rem);
+      font-weight: 800; line-height: 1;
+      letter-spacing: -3px;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: 1.1rem; color: var(--text-muted);
+      max-width: 480px; line-height: 1.7;
+      margin-bottom: 40px;
+    }
+    .hero-btns { display: flex; gap: 14px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 32px; border-radius: 6px;
+      font-size: 0.85rem; font-weight: 600;
+      text-decoration: none; transition: all 0.3s;
+      letter-spacing: 0.5px;
+    }
+    .btn-primary {
+      background: var(--accent); color: #fff;
+    }
+    .btn-primary:hover { background: #2563eb; box-shadow: 0 0 30px var(--accent-glow); }
+    .btn-outline {
+      border: 1px solid var(--border-light);
+      color: var(--text);
+    }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── SECTIONS ── */
+    section { padding: 120px 60px; }
+    .section-header {
+      display: flex; align-items: baseline;
+      gap: 16px; margin-bottom: 60px;
+    }
+    .section-num {
+      font-size: 0.75rem; color: var(--accent);
+      font-weight: 600; letter-spacing: 1px;
+    }
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800; letter-spacing: -1px;
+    }
+
+    /* ── GALLERY — CLEAN IMAGE ONLY ── */
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+    .gallery-item {
+      position: relative; border-radius: 10px;
+      overflow: hidden; cursor: pointer;
+      aspect-ratio: 16/9;
+      border: 1px solid var(--border);
+      transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+    }
+    .gallery-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px var(--accent-glow);
+      border-color: var(--accent-glow);
+    }
+    .gallery-item img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+    .gallery-item:hover img { transform: scale(1.05); }
+    .gallery-num {
+      position: absolute; top: 14px; left: 14px;
+      font-size: 0.7rem; font-weight: 700;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 2px;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      padding: 5px 10px; border-radius: 4px;
+      z-index: 3;
+    }
+    .gallery-item::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.7) 100%);
+      opacity: 0; transition: opacity 0.4s;
+    }
+    .gallery-item:hover::after { opacity: 1; }
+
+    /* ── WATERMARK ── */
+    .watermark {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none; z-index: 2;
+    }
+    .watermark span {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.1rem; font-weight: 700;
+      letter-spacing: 6px; text-transform: uppercase;
+      color: rgba(255,255,255,0.12);
+      transform: rotate(-25deg);
+      user-select: none;
+    }
+
+    /* ── ABOUT ── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 80px; align-items: start;
+    }
+    .about-text p {
+      color: var(--text-muted); font-size: 1.05rem;
+      line-height: 1.8; margin-bottom: 20px;
+    }
+    .skills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 30px; }
+    .skill {
+      padding: 8px 18px; border-radius: 20px;
+      border: 1px solid var(--border);
+      font-size: 0.82rem; color: var(--text-muted);
+      font-weight: 500;
+      transition: border-color 0.3s, color 0.3s;
+    }
+    .skill:hover { border-color: var(--accent); color: var(--accent); }
+
+    .about-visual {
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    .about-stat {
+      padding: 30px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .about-stat-num {
+      font-size: 2.5rem; font-weight: 800;
+      letter-spacing: -1px; color: var(--accent);
+    }
+    .about-stat-label {
+      font-size: 0.85rem; color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ── PROCESS ── */
+    .process-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .process-step {
+      padding: 40px 28px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .process-step:hover {
+      border-color: var(--accent-glow);
+      transform: translateY(-4px);
+    }
+    .step-num {
+      font-size: 0.7rem; font-weight: 700;
+      color: var(--accent); letter-spacing: 2px;
+      margin-bottom: 20px;
+    }
+    .step-icon {
+      width: 48px; height: 48px; border-radius: 10px;
+      background: var(--accent-dim);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; font-weight: 700; color: var(--accent);
+      margin-bottom: 20px;
+    }
+    .process-step h3 {
+      font-size: 1.1rem; font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .process-step p { color: var(--text-muted); font-size: 0.88rem; line-height: 1.7; }
+
+    /* ── CONTACT ── */
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px; max-width: 600px;
+    }
+    .contact-item {
+      padding: 28px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .contact-item-label {
+      font-size: 0.7rem; font-weight: 600;
+      color: var(--accent); letter-spacing: 2px;
+      text-transform: uppercase; margin-bottom: 12px;
+    }
+    .contact-item-value {
+      font-size: 1.05rem; font-weight: 600;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .copy-btn {
+      background: var(--accent-dim);
+      border: 1px solid var(--border-light);
+      color: var(--accent);
+      padding: 6px 14px; border-radius: 6px;
+      font-size: 0.75rem; font-weight: 600;
+      cursor: pointer; transition: all 0.3s;
+      font-family: inherit;
+    }
+    .copy-btn:hover { background: var(--accent); color: #fff; }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 40px 60px;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+      color: var(--text-muted); font-size: 0.8rem;
+    }
+
+    /* ── LIGHTBOX ── */
+    .lightbox {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.92);
+      backdrop-filter: blur(12px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .lightbox.open { opacity: 1; pointer-events: auto; }
+    .lightbox img {
+      max-width: 85vw; max-height: 85vh;
+      border-radius: 10px;
+      box-shadow: 0 0 100px rgba(59,130,246,0.15);
+      transform: scale(0.92); transition: transform 0.3s;
+    }
+    .lightbox.open img { transform: scale(1); }
+    .lightbox-close {
+      position: absolute; top: 30px; right: 30px;
+      width: 44px; height: 44px; border-radius: 50%;
+      border: 1px solid var(--border-light);
+      background: rgba(7,11,20,0.8);
+      color: #fff; font-size: 1.3rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.3s;
+    }
+    .lightbox-close:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── REVEAL ── */
+    .reveal {
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.active { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 900px) {
+      nav { padding: 15px 24px; }
+      section { padding: 80px 24px; }
+      .hero { padding: 60px 24px 80px; }
+      .gallery { grid-template-columns: 1fr; }
+      .about-grid { grid-template-columns: 1fr; gap: 40px; }
+      .process-grid { grid-template-columns: 1fr; }
+      .contact-grid { grid-template-columns: 1fr; }
+      footer { padding: 30px 24px; flex-direction: column; gap: 10px; }
+      .nav-links { gap: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="logo">LUCID</div>
+    <ul class="nav-links">
+      <li><a href="#work">Work</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#process">Process</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="top">
+    <div class="hero-slides">
+      <div class="hero-slide active" style="background-image: url('thumbnails/Bedwars.jpg')"></div>
+      <div class="hero-slide" style="background-image: url('thumbnails/New 2.jpg')"></div>
+      <div class="hero-slide" style="background-image: url('thumbnails/betrayal.jpg')"></div>
+      <div class="hero-slide" style="background-image: url('thumbnails/pack.jpg')"></div>
+    </div>
+    <div class="hero-content">
+      <span class="hero-label">Minecraft Thumbnail Designer</span>
+      <h1>Lucid</h1>
+      <p>Striving to make the best, unique, and eyecatching thumbnails to make YOUR channel grow.</p>
+      <div class="hero-btns">
+        <a href="#work" class="btn btn-primary">View Work</a>
+        <a href="#contact" class="btn btn-outline">Contact</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- WORK -->
+  <section id="work">
+    <div class="section-header reveal">
+      <span class="section-num">[ 01 ]</span>
+      <h2 class="section-title">Selected Work</h2>
+    </div>
+    <div class="gallery">
+      <div class="gallery-item reveal" onclick="openLightbox('thumbnails/New 2.jpg')">
+        <span class="gallery-num">01</span>
+        <img src="thumbnails/New 2.jpg" alt="New 2">
+        <div class="watermark"><span>LucidLol</span></div>
+      </div>
+      <div class="gallery-item reveal" onclick="openLightbox('thumbnails/Bedwars.jpg')">
+        <span class="gallery-num">02</span>
+        <img src="thumbnails/Bedwars.jpg" alt="Bedwars">
+        <div class="watermark"><span>LucidLol</span></div>
+      </div>
+      <div class="gallery-item reveal" onclick="openLightbox('thumbnails/betrayal.jpg')">
+        <span class="gallery-num">03</span>
+        <img src="thumbnails/betrayal.jpg" alt="Betrayal">
+        <div class="watermark"><span>LucidLol</span></div>
+      </div>
+      <div class="gallery-item reveal" onclick="openLightbox('thumbnails/pack.jpg')">
+        <span class="gallery-num">04</span>
+        <img src="thumbnails/pack.jpg" alt="Pack">
+        <div class="watermark"><span>LucidLol</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="section-header reveal">
+      <span class="section-num">[ 02 ]</span>
+      <h2 class="section-title">About</h2>
+    </div>
+    <div class="about-grid">
+      <div class="about-text reveal">
+        <p>I design thumbnails and graphics that get clicks. Clean aesthetics, bold typography, and colors that pop — every piece is made to stand out in a crowded feed.</p>
+        <p>Specializing in Minecraft content, I create visuals that stop the scroll and make people click. From thumbnails to channel branding, I handle it all.</p>
+        <div class="skills">
+          <span class="skill">Thumbnail Design</span>
+          <span class="skill">YouTube Branding</span>
+          <span class="skill">Photo Manipulation</span>
+          <span class="skill">Color Grading</span>
+          <span class="skill">Typography</span>
+          <span class="skill">Motion Graphics</span>
+        </div>
+      </div>
+      <div class="about-visual reveal">
+        <div class="about-stat">
+          <div class="about-stat-num">4+</div>
+          <div class="about-stat-label">Projects Completed</div>
+        </div>
+        <div class="about-stat">
+          <div class="about-stat-num">100%</div>
+          <div class="about-stat-label">Client Satisfaction</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROCESS -->
+  <section id="process">
+    <div class="section-header reveal">
+      <span class="section-num">[ 03 ]</span>
+      <h2 class="section-title">How It Works</h2>
+    </div>
+    <div class="process-grid">
+      <div class="process-step reveal">
+        <div class="step-num">STEP 01</div>
+        <div class="step-icon">1</div>
+        <h3>Send Your Idea</h3>
+        <p>You message me your idea and references, and we discuss the pricing and timeline. We figure out if the thumbnail can be accomplished or not.</p>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num">STEP 02</div>
+        <div class="step-icon">2</div>
+        <h3>Work in Progress</h3>
+        <p>I send work in progress shots with the posing, camera angle, and more. Shots can be retaken until you're satisfied. Once approved, I move onto lighting.</p>
+      </div>
+      <div class="process-step reveal">
+        <div class="step-num">STEP 03</div>
+        <div class="step-icon">3</div>
+        <h3>Final Delivery</h3>
+        <p>I finalize the thumbnail with lighting, extra composition, and details. The finished product is delivered, and any changes can be requested free of charge.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="section-header reveal">
+      <span class="section-num">[ 04 ]</span>
+      <h2 class="section-title">Let's Work Together</h2>
+    </div>
+    <p class="reveal" style="color: var(--text-muted); margin-bottom: 40px; max-width: 500px; line-height: 1.7;">
+      Send me a message with your channel, the video, and any references. I'll get back to you within a few days!
+    </p>
+    <div class="contact-grid reveal">
+      <div class="contact-item">
+        <div class="contact-item-label">Discord</div>
+        <div class="contact-item-value">
+          <span>jamesten560</span>
+          <button class="copy-btn" onclick="copyText('jamesten560', this)">Copy</button>
+        </div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-item-label">Status</div>
+        <div class="contact-item-value">
+          <span style="color: #4ade80;">Accepting Commissions</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Designed by Lucid</span>
+    <span>© 2026</span>
+  </footer>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <img id="lightbox-img" src="" alt="Full view">
+  </div>
+
+  <script>
+    // ── HERO SLIDESHOW ──
+    const slides = document.querySelectorAll('.hero-slide');
+    let currentSlide = 0;
+    setInterval(() => {
+      slides[currentSlide].classList.remove('active');
+      currentSlide = (currentSlide + 1) % slides.length;
+      slides[currentSlide].classList.add('active');
+    }, 4000);
+
+    // ── SCROLL REVEAL ──
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // ── LIGHTBOX ──
+    function openLightbox(src) {
+      document.getElementById('lightbox-img').src = src;
+      document.getElementById('lightbox').classList.add('open');
+    }
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('open');
+    }
+    document.getElementById('lightbox').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeLightbox();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+    // ── COPY ──
+    function copyText(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 1500);
+      });
+    }
+  </script>
+</body>
+</html>
