@@ -209,16 +209,6 @@
       transition: color 0.4s;
     }
     .gallery-item:hover .gallery-num { color: var(--cream); }
-    .gallery-info h3 {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.8rem; font-weight: 700;
-      letter-spacing: -0.5px;
-      margin-bottom: 12px;
-    }
-    .gallery-info p {
-      color: var(--text-dim); font-size: 0.88rem;
-      line-height: 1.6;
-    }
     .gallery-thumb {
       border-radius: 4px; overflow: hidden;
       aspect-ratio: 16/10;
@@ -460,7 +450,7 @@
   <section id="work">
     <div class="section-head reveal">
       <span class="section-num">01</span>
-      <h2 class="section-title">Selected Work</h2>
+      <h2 class="section-title">Personal Work</h2>
     </div>
     <div class="gallery" id="gallery"></div>
   </section>
@@ -473,8 +463,7 @@
     </div>
     <div class="about-split">
       <div class="about-left reveal">
-        <p>I design thumbnails and graphics that <strong>get clicks</strong>. Clean aesthetics, bold typography, and colors that pop — every piece is made to stand out in a crowded feed.</p>
-        <p>Specializing in Minecraft content, I create visuals that <strong>stop the scroll</strong> and make people click. From thumbnails to channel branding, I handle it all.</p>
+        <p>Yo, I'm <strong>Lucid</strong>. I make Minecraft thumbnails with a focus on cinematic lighting, dynamic poses, and strong visual storytelling. I'm always experimenting, improving, and pushing my style further with every thumbnail.</p>
         <div class="skills-row" style="margin-top: 32px;">
           <span class="skill-tag">Thumbnail Design</span>
           <span class="skill-tag">YouTube Branding</span>
@@ -615,10 +604,10 @@
 
     // ── GALLERY ──
     const works = [
-      { file: 'thumb1.png', title: 'Flame', desc: 'Bold, clean, click-worthy design.' },
-      { file: 'thumb2.png', title: 'New Project', desc: 'Vibrant colors, energetic composition.' },
-      { file: 'thumb3.png', title: 'Best One', desc: 'Dramatic storytelling, high contrast.' },
-      { file: 'thumb4.jpg', title: 'Betrayal', desc: 'Clean layout, vivid detail.' },
+      { file: 'thumb1.png' },
+      { file: 'thumb2.png' },
+      { file: 'thumb3.png' },
+      { file: 'thumb4.jpg' },
     ];
 
     const gallery = document.getElementById('gallery');
@@ -628,11 +617,9 @@
       item.innerHTML = `
         <div class="gallery-info">
           <div class="gallery-num">0${i + 1}</div>
-          <h3>${w.title}</h3>
-          <p>${w.desc}</p>
         </div>
         <div class="gallery-thumb">
-          <img src="thumbs/${w.file}" alt="${w.title}" loading="lazy"
+          <img src="thumbs/${w.file}" alt="" loading="lazy"
                onerror="this.parentElement.parentElement.style.display='none'">
           <div class="watermark"><span>LucidLol</span></div>
         </div>
