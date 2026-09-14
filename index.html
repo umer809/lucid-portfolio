@@ -3,176 +3,260 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lucid — Minecraft Thumbnail Designer</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>Lucid — Thumbnail Designer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg: #070b14;
-      --bg-elevated: #0d1220;
-      --bg-card: #111827;
-      --border: rgba(59,130,246,0.08);
-      --border-light: rgba(59,130,246,0.15);
-      --text: #f0f4ff;
-      --text-muted: #5a6a8a;
+      --bg: #050508;
+      --surface: #0a0a0f;
+      --surface-2: #111118;
+      --border: rgba(255,255,255,0.04);
+      --border-hover: rgba(255,255,255,0.08);
+      --text: #ececec;
+      --text-dim: #555;
+      --text-faint: #333;
       --accent: #3b82f6;
-      --accent-dim: rgba(59,130,246,0.15);
-      --accent-glow: rgba(59,130,246,0.3);
+      --accent-soft: rgba(59,130,246,0.08);
     }
 
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+      scrollbar-width: thin;
+      scrollbar-color: #222 transparent;
+    }
 
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'Inter', -apple-system, sans-serif;
-      line-height: 1.6;
+      font-family: 'Geist', -apple-system, sans-serif;
+      overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
     }
+
+    /* ── GRAIN OVERLAY ── */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999;
+      opacity: 0.4;
+    }
+
+    /* ── CUSTOM CURSOR ── */
+    .cursor {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      position: fixed;
+      pointer-events: none;
+      z-index: 10000;
+      transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s;
+      mix-blend-mode: difference;
+      transform: translate(-50%, -50%);
+    }
+    .cursor.active { transform: translate(-50%, -50%) scale(4); opacity: 0.5; }
 
     /* ── NAV ── */
     nav {
       position: fixed; top: 0; width: 100%; z-index: 100;
       display: flex; justify-content: space-between; align-items: center;
-      padding: 20px 60px;
-      background: rgba(7,11,20,0.8);
-      backdrop-filter: blur(24px);
-      border-bottom: 1px solid var(--border);
+      padding: 24px 48px;
     }
     .logo {
-      font-weight: 800; font-size: 1rem; letter-spacing: 3px;
-      text-transform: uppercase; color: var(--accent);
+      font-weight: 700; font-size: 0.9rem;
+      letter-spacing: 4px; text-transform: uppercase;
+      color: var(--text);
     }
-    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-right { display: flex; align-items: center; gap: 40px; }
+    .nav-links { display: flex; gap: 28px; list-style: none; }
     .nav-links a {
-      color: var(--text-muted); text-decoration: none;
-      font-size: 0.85rem; font-weight: 500;
-      transition: color 0.3s;
-    }
-    .nav-links a:hover { color: var(--accent); }
-
-    /* ── HERO SLIDESHOW ── */
-    .hero {
+      color: var(--text-dim); text-decoration: none;
+      font-size: 0.8rem; font-weight: 500;
+      letter-spacing: 0.5px;
+      transition: color 0.4s;
       position: relative;
+    }
+    .nav-links a::after {
+      content: ''; position: absolute;
+      bottom: -4px; left: 0; width: 0; height: 1px;
+      background: var(--accent);
+      transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-links a:hover::after { width: 100%; }
+    .status-badge {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.75rem; color: var(--text-dim);
+      font-family: 'Geist Mono', monospace;
+    }
+    .status-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #22c55e;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+      50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+    }
+
+    /* ── HERO ── */
+    .hero {
       min-height: 100vh;
       display: flex; flex-direction: column;
       justify-content: flex-end;
-      padding: 80px 60px 100px;
-      overflow: hidden;
+      padding: 0 48px 80px;
+      position: relative;
     }
-    .hero-slides {
-      position: absolute; inset: 0;
+    .hero-line {
+      width: 40px; height: 1px;
+      background: var(--text-faint);
+      margin-bottom: 32px;
     }
-    .hero-slide {
-      position: absolute; inset: 0;
-      background-size: cover; background-position: center;
-      opacity: 0;
-      transition: opacity 1.5s ease-in-out;
-      filter: blur(8px) brightness(0.25) saturate(1.3);
-      transform: scale(1.1);
-    }
-    .hero-slide.active { opacity: 1; }
-    .hero-slides::after {
-      content: ''; position: absolute; inset: 0;
-      background: linear-gradient(180deg, rgba(7,11,20,0.3) 0%, rgba(7,11,20,0.85) 70%, var(--bg) 100%);
-      z-index: 1;
-    }
-    .hero-content { position: relative; z-index: 2; max-width: 700px; }
     .hero-label {
-      display: inline-block;
-      font-size: 0.7rem; font-weight: 600;
-      letter-spacing: 4px; text-transform: uppercase;
-      color: var(--accent); margin-bottom: 20px;
-      padding: 6px 16px;
-      border: 1px solid var(--border-light);
-      border-radius: 4px;
+      font-size: 0.75rem; font-weight: 500;
+      color: var(--text-dim);
+      letter-spacing: 3px; text-transform: uppercase;
+      margin-bottom: 24px;
+      font-family: 'Geist Mono', monospace;
     }
     .hero h1 {
-      font-size: clamp(3.5rem, 8vw, 6.5rem);
-      font-weight: 800; line-height: 1;
+      font-size: clamp(3rem, 8vw, 7rem);
+      font-weight: 800; line-height: 0.95;
       letter-spacing: -3px;
-      margin-bottom: 24px;
-      background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 32px;
     }
-    .hero p {
-      font-size: 1.1rem; color: var(--text-muted);
-      max-width: 480px; line-height: 1.7;
+    .hero h1 .line {
+      display: block;
+      overflow: hidden;
+    }
+    .hero h1 .line span {
+      display: inline-block;
+      transform: translateY(110%);
+      animation: slideUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .hero h1 .line:nth-child(2) span { animation-delay: 0.1s; }
+    .hero h1 .accent { color: var(--accent); }
+    .hero-desc {
+      font-size: 1rem; color: var(--text-dim);
+      max-width: 440px; line-height: 1.7;
       margin-bottom: 40px;
     }
-    .hero-btns { display: flex; gap: 14px; flex-wrap: wrap; }
+    .hero-btns { display: flex; gap: 12px; }
     .btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 14px 32px; border-radius: 6px;
-      font-size: 0.85rem; font-weight: 600;
-      text-decoration: none; transition: all 0.3s;
-      letter-spacing: 0.5px;
+      padding: 12px 28px; border-radius: 6px;
+      font-size: 0.8rem; font-weight: 600;
+      text-decoration: none; transition: all 0.4s;
+      letter-spacing: 0.3px;
+      font-family: 'Geist', sans-serif;
     }
-    .btn-primary {
+    .btn-fill {
       background: var(--accent); color: #fff;
     }
-    .btn-primary:hover { background: #2563eb; box-shadow: 0 0 30px var(--accent-glow); }
-    .btn-outline {
-      border: 1px solid var(--border-light);
-      color: var(--text);
+    .btn-fill:hover { background: #2563eb; }
+    .btn-ghost {
+      border: 1px solid var(--border-hover);
+      color: var(--text-dim);
     }
-    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    @keyframes slideUp {
+      to { transform: translateY(0); }
+    }
+
+    /* ── MARQUEE ── */
+    .marquee-wrap {
+      padding: 60px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .marquee {
+      display: flex; gap: 60px;
+      animation: marquee 20s linear infinite;
+      white-space: nowrap;
+    }
+    .marquee span {
+      font-size: clamp(1.5rem, 3vw, 2.5rem);
+      font-weight: 700;
+      color: var(--text-faint);
+      letter-spacing: -1px;
+      flex-shrink: 0;
+    }
+    .marquee span .dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      margin: 0 30px;
+      vertical-align: middle;
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
 
     /* ── SECTIONS ── */
-    section { padding: 120px 60px; }
-    .section-header {
-      display: flex; align-items: baseline;
+    section { padding: 120px 48px; }
+    .section-head {
+      display: flex; align-items: center;
       gap: 16px; margin-bottom: 60px;
     }
     .section-num {
-      font-size: 0.75rem; color: var(--accent);
-      font-weight: 600; letter-spacing: 1px;
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.7rem; color: var(--text-faint);
+      letter-spacing: 1px;
     }
     .section-title {
-      font-size: clamp(2rem, 4vw, 3rem);
-      font-weight: 800; letter-spacing: -1px;
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      font-weight: 700; letter-spacing: -1px;
     }
 
-    /* ── GALLERY — CLEAN IMAGE ONLY ── */
-    .gallery {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 20px;
-    }
+    /* ── GALLERY ── */
+    .gallery { display: flex; flex-direction: column; }
     .gallery-item {
-      position: relative; border-radius: 10px;
-      overflow: hidden; cursor: pointer;
-      aspect-ratio: 16/9;
-      border: 1px solid var(--border);
-      transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+      position: relative;
+      display: grid;
+      grid-template-columns: 80px 1fr 1fr;
+      gap: 40px; align-items: center;
+      padding: 48px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.4s;
     }
-    .gallery-item:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px var(--accent-glow);
-      border-color: var(--accent-glow);
-    }
-    .gallery-item img {
-      width: 100%; height: 100%; object-fit: cover;
-      transition: transform 0.5s ease;
-    }
-    .gallery-item:hover img { transform: scale(1.05); }
+    .gallery-item:first-child { border-top: 1px solid var(--border); }
+    .gallery-item:hover { background: rgba(255,255,255,0.01); }
     .gallery-num {
-      position: absolute; top: 14px; left: 14px;
-      font-size: 0.7rem; font-weight: 700;
-      color: rgba(255,255,255,0.6);
-      letter-spacing: 2px;
-      background: rgba(0,0,0,0.5);
-      backdrop-filter: blur(8px);
-      padding: 5px 10px; border-radius: 4px;
-      z-index: 3;
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.75rem; color: var(--text-faint);
     }
-    .gallery-item::after {
-      content: ''; position: absolute; inset: 0;
-      background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.7) 100%);
-      opacity: 0; transition: opacity 0.4s;
+    .gallery-info h3 {
+      font-size: 1.6rem; font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+      transition: color 0.4s;
     }
-    .gallery-item:hover::after { opacity: 1; }
+    .gallery-item:hover .gallery-info h3 { color: var(--accent); }
+    .gallery-info p {
+      color: var(--text-dim); font-size: 0.88rem;
+      line-height: 1.6;
+    }
+    .gallery-thumb {
+      border-radius: 8px; overflow: hidden;
+      aspect-ratio: 16/9;
+      position: relative;
+    }
+    .gallery-thumb img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      filter: grayscale(0.3);
+    }
+    .gallery-item:hover .gallery-thumb img {
+      transform: scale(1.05);
+      filter: grayscale(0);
+    }
 
     /* ── WATERMARK ── */
     .watermark {
@@ -181,10 +265,10 @@
       pointer-events: none; z-index: 2;
     }
     .watermark span {
-      font-family: 'Inter', sans-serif;
-      font-size: 1.1rem; font-weight: 700;
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.85rem; font-weight: 500;
       letter-spacing: 6px; text-transform: uppercase;
-      color: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.1);
       transform: rotate(-25deg);
       user-select: none;
     }
@@ -192,271 +276,264 @@
     /* ── ABOUT ── */
     .about-grid {
       display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      gap: 80px; align-items: start;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
     }
-    .about-text p {
-      color: var(--text-muted); font-size: 1.05rem;
-      line-height: 1.8; margin-bottom: 20px;
+    .about-text {
+      font-size: 1.1rem; color: var(--text-dim);
+      line-height: 1.8;
     }
-    .skills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 30px; }
+    .about-text p { margin-bottom: 20px; }
+    .skills-wrap { margin-top: 40px; }
+    .skills-label {
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.7rem; color: var(--text-faint);
+      letter-spacing: 2px; text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .skills {
+      display: flex; gap: 8px; flex-wrap: wrap;
+    }
     .skill {
-      padding: 8px 18px; border-radius: 20px;
+      padding: 8px 16px; border-radius: 4px;
+      background: var(--surface-2);
       border: 1px solid var(--border);
-      font-size: 0.82rem; color: var(--text-muted);
+      font-size: 0.78rem; color: var(--text-dim);
       font-weight: 500;
-      transition: border-color 0.3s, color 0.3s;
+      transition: all 0.3s;
     }
     .skill:hover { border-color: var(--accent); color: var(--accent); }
-
-    .about-visual {
+    .about-stats {
       display: flex; flex-direction: column; gap: 20px;
     }
-    .about-stat {
-      padding: 30px;
-      background: var(--bg-elevated);
+    .stat-card {
+      padding: 32px;
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 8px;
     }
-    .about-stat-num {
-      font-size: 2.5rem; font-weight: 800;
-      letter-spacing: -1px; color: var(--accent);
+    .stat-num {
+      font-size: 2.8rem; font-weight: 800;
+      letter-spacing: -2px;
+      color: var(--accent);
     }
-    .about-stat-label {
-      font-size: 0.85rem; color: var(--text-muted);
+    .stat-label {
+      font-size: 0.82rem; color: var(--text-dim);
       margin-top: 4px;
     }
 
     /* ── PROCESS ── */
-    .process-grid {
+    .process-list { display: flex; flex-direction: column; }
+    .process-item {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
+      grid-template-columns: 80px 1fr;
+      gap: 40px;
+      padding: 48px 0;
+      border-bottom: 1px solid var(--border);
     }
-    .process-step {
-      padding: 40px 28px;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      transition: border-color 0.3s, transform 0.3s;
+    .process-item:first-child { border-top: 1px solid var(--border); }
+    .process-num {
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.75rem; color: var(--text-faint);
     }
-    .process-step:hover {
-      border-color: var(--accent-glow);
-      transform: translateY(-4px);
+    .process-item h3 {
+      font-size: 1.3rem; font-weight: 700;
+      margin-bottom: 12px; letter-spacing: -0.3px;
     }
-    .step-num {
-      font-size: 0.7rem; font-weight: 700;
-      color: var(--accent); letter-spacing: 2px;
-      margin-bottom: 20px;
+    .process-item p {
+      color: var(--text-dim); font-size: 0.9rem;
+      line-height: 1.7; max-width: 500px;
     }
-    .step-icon {
-      width: 48px; height: 48px; border-radius: 10px;
-      background: var(--accent-dim);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.2rem; font-weight: 700; color: var(--accent);
-      margin-bottom: 20px;
-    }
-    .process-step h3 {
-      font-size: 1.1rem; font-weight: 700;
-      margin-bottom: 12px;
-    }
-    .process-step p { color: var(--text-muted); font-size: 0.88rem; line-height: 1.7; }
 
     /* ── CONTACT ── */
     .contact-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 20px; max-width: 600px;
+      gap: 16px; max-width: 500px;
     }
-    .contact-item {
+    .contact-card {
       padding: 28px;
-      background: var(--bg-elevated);
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 8px;
+      transition: border-color 0.3s;
     }
-    .contact-item-label {
-      font-size: 0.7rem; font-weight: 600;
-      color: var(--accent); letter-spacing: 2px;
-      text-transform: uppercase; margin-bottom: 12px;
+    .contact-card:hover { border-color: var(--border-hover); }
+    .contact-label {
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.65rem; color: var(--accent);
+      letter-spacing: 2px; text-transform: uppercase;
+      margin-bottom: 12px;
     }
-    .contact-item-value {
-      font-size: 1.05rem; font-weight: 600;
+    .contact-val {
+      font-size: 1rem; font-weight: 600;
       display: flex; align-items: center; justify-content: space-between;
     }
     .copy-btn {
-      background: var(--accent-dim);
-      border: 1px solid var(--border-light);
-      color: var(--accent);
-      padding: 6px 14px; border-radius: 6px;
-      font-size: 0.75rem; font-weight: 600;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 5px 12px; border-radius: 4px;
+      font-size: 0.7rem; font-weight: 600;
       cursor: pointer; transition: all 0.3s;
-      font-family: inherit;
+      font-family: 'Geist Mono', monospace;
     }
-    .copy-btn:hover { background: var(--accent); color: #fff; }
+    .copy-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 
     /* ── FOOTER ── */
     footer {
-      padding: 40px 60px;
+      padding: 40px 48px;
       border-top: 1px solid var(--border);
       display: flex; justify-content: space-between; align-items: center;
-      color: var(--text-muted); font-size: 0.8rem;
+    }
+    footer span {
+      font-size: 0.75rem; color: var(--text-faint);
+      font-family: 'Geist Mono', monospace;
     }
 
     /* ── LIGHTBOX ── */
     .lightbox {
       position: fixed; inset: 0; z-index: 1000;
-      background: rgba(0,0,0,0.92);
-      backdrop-filter: blur(12px);
+      background: rgba(5,5,8,0.95);
+      backdrop-filter: blur(20px);
       display: flex; align-items: center; justify-content: center;
       opacity: 0; pointer-events: none;
-      transition: opacity 0.3s;
+      transition: opacity 0.4s;
     }
     .lightbox.open { opacity: 1; pointer-events: auto; }
     .lightbox img {
       max-width: 85vw; max-height: 85vh;
-      border-radius: 10px;
-      box-shadow: 0 0 100px rgba(59,130,246,0.15);
-      transform: scale(0.92); transition: transform 0.3s;
+      border-radius: 8px;
+      transform: scale(0.95); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .lightbox.open img { transform: scale(1); }
-    .lightbox-close {
-      position: absolute; top: 30px; right: 30px;
-      width: 44px; height: 44px; border-radius: 50%;
-      border: 1px solid var(--border-light);
-      background: rgba(7,11,20,0.8);
-      color: #fff; font-size: 1.3rem; cursor: pointer;
+    .lightbox-x {
+      position: absolute; top: 32px; right: 32px;
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 1px solid var(--border-hover);
+      background: transparent;
+      color: var(--text-dim); font-size: 1.2rem;
+      cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: all 0.3s;
     }
-    .lightbox-close:hover { border-color: var(--accent); color: var(--accent); }
+    .lightbox-x:hover { border-color: var(--accent); color: var(--accent); }
 
     /* ── REVEAL ── */
     .reveal {
-      opacity: 0; transform: translateY(30px);
-      transition: opacity 0.6s ease, transform 0.6s ease;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .reveal.active { opacity: 1; transform: translateY(0); }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
+    /* ── RESPONSIVE ── */
     @media (max-width: 900px) {
-      nav { padding: 15px 24px; }
+      nav { padding: 16px 24px; }
       section { padding: 80px 24px; }
-      .hero { padding: 60px 24px 80px; }
-      .gallery { grid-template-columns: 1fr; }
+      .hero { padding: 0 24px 60px; }
+      .gallery-item {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .gallery-num { display: none; }
       .about-grid { grid-template-columns: 1fr; gap: 40px; }
-      .process-grid { grid-template-columns: 1fr; }
+      .process-item { grid-template-columns: 1fr; gap: 12px; }
       .contact-grid { grid-template-columns: 1fr; }
-      footer { padding: 30px 24px; flex-direction: column; gap: 10px; }
-      .nav-links { gap: 18px; }
+      footer { padding: 30px 24px; flex-direction: column; gap: 12px; }
+      .nav-links { display: none; }
     }
   </style>
 </head>
 <body>
 
+  <div class="cursor" id="cursor"></div>
+
   <!-- NAV -->
   <nav>
     <div class="logo">LUCID</div>
-    <ul class="nav-links">
-      <li><a href="#work">Work</a></li>
-      <li><a href="#about">About</a></li>
-      <li><a href="#process">Process</a></li>
-      <li><a href="#contact">Contact</a></li>
-    </ul>
+    <div class="nav-right">
+      <ul class="nav-links">
+        <li><a href="#work">Work</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#process">Process</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        Available
+      </div>
+    </div>
   </nav>
 
   <!-- HERO -->
-  <section class="hero" id="top">
-    <div class="hero-slides">
-      <div class="hero-slide active" style="background-image: url('thumbnails/Bedwars.jpg')"></div>
-      <div class="hero-slide" style="background-image: url('thumbnails/New 2.jpg')"></div>
-      <div class="hero-slide" style="background-image: url('thumbnails/betrayal.jpg')"></div>
-      <div class="hero-slide" style="background-image: url('thumbnails/pack.jpg')"></div>
-      <div class="hero-slide" style="background-image: url('thumbnails/HUNT.png')"></div>
-      <div class="hero-slide" style="background-image: url('thumbnails/best one.png')"></div>
-      <div class="hero-slide" style="background-image: url('thumbnails/New Project (4).png')"></div>
-    </div>
-    <div class="hero-content">
-      <span class="hero-label">Minecraft Thumbnail Designer</span>
-      <h1>Lucid</h1>
-      <p>Striving to make the best, unique, and eyecatching thumbnails to make YOUR channel grow.</p>
-      <div class="hero-btns">
-        <a href="#work" class="btn btn-primary">View Work</a>
-        <a href="#contact" class="btn btn-outline">Contact</a>
-      </div>
+  <section class="hero">
+    <div class="hero-line"></div>
+    <div class="hero-label">Thumbnail Designer</div>
+    <h1>
+      <span class="line"><span>Minecraft</span></span>
+      <span class="line"><span class="accent">Thumbnails</span></span>
+    </h1>
+    <p class="hero-desc">Crafting bold, click-worthy visuals that make your content stand out. Every thumbnail is designed to stop the scroll.</p>
+    <div class="hero-btns">
+      <a href="#work" class="btn btn-fill">View Work</a>
+      <a href="#contact" class="btn btn-ghost">Get in Touch</a>
     </div>
   </section>
 
+  <!-- MARQUEE -->
+  <div class="marquee-wrap">
+    <div class="marquee">
+      <span>Thumbnail Design <span class="dot"></span> YouTube Branding <span class="dot"></span> Photo Manipulation <span class="dot"></span> Color Grading <span class="dot"></span> Typography <span class="dot"></span> Motion Graphics <span class="dot"></span></span>
+      <span>Thumbnail Design <span class="dot"></span> YouTube Branding <span class="dot"></span> Photo Manipulation <span class="dot"></span> Color Grading <span class="dot"></span> Typography <span class="dot"></span> Motion Graphics <span class="dot"></span></span>
+    </div>
+  </div>
+
   <!-- WORK -->
   <section id="work">
-    <div class="section-header reveal">
-      <span class="section-num">[ 01 ]</span>
+    <div class="section-head reveal">
+      <span class="section-num">01</span>
       <h2 class="section-title">Selected Work</h2>
     </div>
-    <div class="gallery">
-      <div class="gallery-item reveal" onclick="openLightbox('thumbnails/New 2.jpg')">
-        <span class="gallery-num">01</span>
-        <img src="thumbnails/New 2.jpg" alt="New 2">
-        <div class="watermark"><span>LucidLol</span></div>
-      </div>
-      <div class="gallery-item reveal" onclick="openLightbox('thumbnails/Bedwars.jpg')">
-        <span class="gallery-num">02</span>
-        <img src="thumbnails/Bedwars.jpg" alt="Bedwars">
-        <div class="watermark"><span>LucidLol</span></div>
-      </div>
-      <div class="gallery-item reveal" onclick="openLightbox('thumbnails/betrayal.jpg')">
-        <span class="gallery-num">03</span>
-        <img src="thumbnails/betrayal.jpg" alt="Betrayal">
-        <div class="watermark"><span>LucidLol</span></div>
-      </div>
-      <div class="gallery-item reveal" onclick="openLightbox('thumbnails/pack.jpg')">
-        <span class="gallery-num">04</span>
-        <img src="thumbnails/pack.jpg" alt="Pack">
-        <div class="watermark"><span>LucidLol</span></div>
-      </div>
-      <div class="gallery-item reveal" onclick="openLightbox('thumbnails/HUNT.png')">
-        <span class="gallery-num">05</span>
-        <img src="thumbnails/HUNT.png" alt="Hunt">
-        <div class="watermark"><span>LucidLol</span></div>
-      </div>
-      <div class="gallery-item reveal" onclick="openLightbox('thumbnails/best one.png')">
-        <span class="gallery-num">06</span>
-        <img src="thumbnails/best one.png" alt="Best One">
-        <div class="watermark"><span>LucidLol</span></div>
-      </div>
-      <div class="gallery-item reveal" onclick="openLightbox('thumbnails/New Project (4).png')">
-        <span class="gallery-num">07</span>
-        <img src="thumbnails/New Project (4).png" alt="New Project 4">
-        <div class="watermark"><span>LucidLol</span></div>
-      </div>
+    <div class="gallery" id="gallery">
+      <!-- Thumbnails will be added here — place images in thumbs/ folder -->
     </div>
   </section>
 
   <!-- ABOUT -->
   <section id="about">
-    <div class="section-header reveal">
-      <span class="section-num">[ 02 ]</span>
+    <div class="section-head reveal">
+      <span class="section-num">02</span>
       <h2 class="section-title">About</h2>
     </div>
     <div class="about-grid">
       <div class="about-text reveal">
         <p>I design thumbnails and graphics that get clicks. Clean aesthetics, bold typography, and colors that pop — every piece is made to stand out in a crowded feed.</p>
         <p>Specializing in Minecraft content, I create visuals that stop the scroll and make people click. From thumbnails to channel branding, I handle it all.</p>
-        <div class="skills">
-          <span class="skill">Thumbnail Design</span>
-          <span class="skill">YouTube Branding</span>
-          <span class="skill">Photo Manipulation</span>
-          <span class="skill">Color Grading</span>
-          <span class="skill">Typography</span>
-          <span class="skill">Motion Graphics</span>
+        <div class="skills-wrap">
+          <div class="skills-label">Services</div>
+          <div class="skills">
+            <span class="skill">Thumbnail Design</span>
+            <span class="skill">YouTube Branding</span>
+            <span class="skill">Photo Manipulation</span>
+            <span class="skill">Color Grading</span>
+            <span class="skill">Typography</span>
+            <span class="skill">Motion Graphics</span>
+          </div>
         </div>
       </div>
-      <div class="about-visual reveal">
-        <div class="about-stat">
-          <div class="about-stat-num">7+</div>
-          <div class="about-stat-label">Projects Completed</div>
+      <div class="about-stats reveal">
+        <div class="stat-card">
+          <div class="stat-num">0</div>
+          <div class="stat-label">Projects Completed</div>
         </div>
-        <div class="about-stat">
-          <div class="about-stat-num">100%</div>
-          <div class="about-stat-label">Client Satisfaction</div>
+        <div class="stat-card">
+          <div class="stat-num">100%</div>
+          <div class="stat-label">Client Satisfaction</div>
         </div>
       </div>
     </div>
@@ -464,53 +541,56 @@
 
   <!-- PROCESS -->
   <section id="process">
-    <div class="section-header reveal">
-      <span class="section-num">[ 03 ]</span>
+    <div class="section-head reveal">
+      <span class="section-num">03</span>
       <h2 class="section-title">How It Works</h2>
     </div>
-    <div class="process-grid">
-      <div class="process-step reveal">
-        <div class="step-num">STEP 01</div>
-        <div class="step-icon">1</div>
-        <h3>Send Your Idea</h3>
-        <p>You message me your idea and references, and we discuss the pricing and timeline. We figure out if the thumbnail can be accomplished or not.</p>
+    <div class="process-list">
+      <div class="process-item reveal">
+        <span class="process-num">01</span>
+        <div>
+          <h3>Send Your Idea</h3>
+          <p>Message me your idea and references. We discuss the pricing and timeline, and figure out if the thumbnail can be accomplished.</p>
+        </div>
       </div>
-      <div class="process-step reveal">
-        <div class="step-num">STEP 02</div>
-        <div class="step-icon">2</div>
-        <h3>Work in Progress</h3>
-        <p>I send work in progress shots with the posing, camera angle, and more. Shots can be retaken until you're satisfied. Once approved, I move onto lighting.</p>
+      <div class="process-item reveal">
+        <span class="process-num">02</span>
+        <div>
+          <h3>Work in Progress</h3>
+          <p>I send progress shots with posing, camera angle, and more. Shots can be retaken until you're satisfied. Once approved, I move onto lighting.</p>
+        </div>
       </div>
-      <div class="process-step reveal">
-        <div class="step-num">STEP 03</div>
-        <div class="step-icon">3</div>
-        <h3>Final Delivery</h3>
-        <p>I finalize the thumbnail with lighting, extra composition, and details. The finished product is delivered, and any changes can be requested free of charge.</p>
+      <div class="process-item reveal">
+        <span class="process-num">03</span>
+        <div>
+          <h3>Final Delivery</h3>
+          <p>I finalize with lighting, composition, and details. The finished product is delivered, and any changes can be requested free of charge.</p>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- CONTACT -->
   <section id="contact">
-    <div class="section-header reveal">
-      <span class="section-num">[ 04 ]</span>
-      <h2 class="section-title">Let's Work Together</h2>
+    <div class="section-head reveal">
+      <span class="section-num">04</span>
+      <h2 class="section-title">Get in Touch</h2>
     </div>
-    <p class="reveal" style="color: var(--text-muted); margin-bottom: 40px; max-width: 500px; line-height: 1.7;">
-      Send me a message with your channel, the video, and any references. I'll get back to you within a few days!
+    <p class="reveal" style="color: var(--text-dim); margin-bottom: 32px; max-width: 440px; line-height: 1.7; font-size: 0.95rem;">
+      Send me your channel, video, and any references. I'll get back to you within a few days.
     </p>
     <div class="contact-grid reveal">
-      <div class="contact-item">
-        <div class="contact-item-label">Discord</div>
-        <div class="contact-item-value">
+      <div class="contact-card">
+        <div class="contact-label">Discord</div>
+        <div class="contact-val">
           <span>jamesten560</span>
           <button class="copy-btn" onclick="copyText('jamesten560', this)">Copy</button>
         </div>
       </div>
-      <div class="contact-item">
-        <div class="contact-item-label">Status</div>
-        <div class="contact-item-value">
-          <span style="color: #4ade80;">Accepting Commissions</span>
+      <div class="contact-card">
+        <div class="contact-label">Status</div>
+        <div class="contact-val">
+          <span style="color: #22c55e; font-size: 0.85rem;">Available</span>
         </div>
       </div>
     </div>
@@ -523,25 +603,77 @@
 
   <!-- LIGHTBOX -->
   <div class="lightbox" id="lightbox">
-    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-    <img id="lightbox-img" src="" alt="Full view">
+    <button class="lightbox-x" onclick="closeLightbox()">✕</button>
+    <img id="lightbox-img" src="" alt="">
   </div>
 
   <script>
-    // ── HERO SLIDESHOW ──
-    const slides = document.querySelectorAll('.hero-slide');
-    let currentSlide = 0;
-    setInterval(() => {
-      slides[currentSlide].classList.remove('active');
-      currentSlide = (currentSlide + 1) % slides.length;
-      slides[currentSlide].classList.add('active');
-    }, 4000);
+    // ── CURSOR ──
+    const cursor = document.getElementById('cursor');
+    let mouseX = 0, mouseY = 0;
+    document.addEventListener('mousemove', e => {
+      mouseX = e.clientX; mouseY = e.clientY;
+      cursor.style.left = mouseX + 'px';
+      cursor.style.top = mouseY + 'px';
+    });
+    document.querySelectorAll('a, .btn, .gallery-item, .copy-btn, .skill, .contact-card').forEach(el => {
+      el.addEventListener('mouseenter', () => cursor.classList.add('active'));
+      el.addEventListener('mouseleave', () => cursor.classList.remove('active'));
+    });
 
     // ── SCROLL REVEAL ──
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          setTimeout(() => e.target.classList.add('visible'), i * 80);
+          revealObserver.unobserve(e.target);
+        }
+      });
     }, { threshold: 0.1 });
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // ── GALLERY (auto-populate from thumbs/) ──
+    const works = [
+      { file: 'thumb1.jpg', title: 'Project One', desc: 'Bold, clean, click-worthy.' },
+      { file: 'thumb2.jpg', title: 'Project Two', desc: 'Vibrant colors, energetic composition.' },
+      { file: 'thumb3.jpg', title: 'Project Three', desc: 'Dramatic storytelling, high contrast.' },
+      { file: 'thumb4.jpg', title: 'Project Four', desc: 'Clean layout, vivid detail.' },
+      { file: 'thumb5.jpg', title: 'Project Five', desc: 'Eye-catching, scroll-stopping design.' },
+      { file: 'thumb6.jpg', title: 'Project Six', desc: 'Professional grade thumbnail.' },
+    ];
+
+    const gallery = document.getElementById('gallery');
+    let loadedCount = 0;
+
+    works.forEach((w, i) => {
+      const item = document.createElement('div');
+      item.className = 'gallery-item reveal';
+      item.innerHTML = `
+        <span class="gallery-num">0${i + 1}</span>
+        <div class="gallery-info">
+          <h3>${w.title}</h3>
+          <p>${w.desc}</p>
+        </div>
+        <div class="gallery-thumb">
+          <img src="thumbs/${w.file}" alt="${w.title}" loading="lazy"
+               onerror="this.parentElement.parentElement.style.display='none'">
+          <div class="watermark"><span>LucidLol</span></div>
+        </div>
+      `;
+      item.addEventListener('click', () => {
+        const img = item.querySelector('img');
+        if (img.src) openLightbox(img.src);
+      });
+      gallery.appendChild(item);
+    });
+
+    // observe gallery items after they're added
+    setTimeout(() => {
+      document.querySelectorAll('.gallery-item.reveal').forEach(el => revealObserver.observe(el));
+      // update stat count
+      const visible = document.querySelectorAll('.gallery-item:not([style*="display: none"])').length;
+      document.querySelector('.stat-num').textContent = visible + '+';
+    }, 100);
 
     // ── LIGHTBOX ──
     function openLightbox(src) {
