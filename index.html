@@ -96,6 +96,12 @@
       font-family: 'Syne', sans-serif;
       font-weight: 800; font-size: 1.1rem;
       letter-spacing: 6px; text-transform: uppercase;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .logo img {
+      width: 28px; height: 28px;
+      border-radius: 4px;
+      image-rendering: pixelated;
     }
     .nav-links { display: flex; gap: 36px; list-style: none; }
     .nav-links a {
@@ -422,7 +428,7 @@
 
   <!-- NAV -->
   <nav>
-    <div class="logo">LUCID</div>
+    <div class="logo"><img src="logo.png" alt="Lucid"> LUCID</div>
     <ul class="nav-links">
       <li><a href="#work">Work</a></li>
       <li><a href="#about">About</a></li>
