@@ -343,6 +343,38 @@
     }
     .copy-btn:hover { border-color: var(--cream); color: var(--cream); }
 
+    /* ── CHANNEL CARD ── */
+    .channel-card {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 28px; margin-top: 16px;
+      border: 1px solid var(--grey); border-radius: 4px;
+      text-decoration: none; color: var(--white);
+      transition: border-color 0.3s, background 0.3s;
+      max-width: 420px;
+    }
+    .channel-card:hover { border-color: #ff0000; background: rgba(255,0,0,0.03); }
+    .channel-left { display: flex; align-items: center; gap: 14px; }
+    .channel-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg, #ff0000, #cc0000);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: 1rem; color: #fff;
+    }
+    .channel-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 0.95rem;
+    }
+    .channel-handle {
+      font-size: 0.75rem; color: var(--text-dim);
+      margin-top: 2px;
+    }
+    .channel-stats {
+      font-size: 0.75rem; color: var(--text-dim);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .channel-dot { color: var(--text-faint); }
+
     /* ── FOOTER ── */
     footer {
       padding: 40px 48px;
@@ -533,11 +565,32 @@
       </div>
       <div class="contact-card">
         <div>
+          <div class="contact-label">Gmail</div>
+          <div class="contact-val">jamalumer2208@gmail.com</div>
+        </div>
+        <button class="copy-btn" onclick="copyText('jamalumer2208@gmail.com', this)">Copy</button>
+      </div>
+      <div class="contact-card">
+        <div>
           <div class="contact-label">Status</div>
           <div class="contact-val" style="color: #22c55e; font-size: 0.85rem;">Available for commissions</div>
         </div>
       </div>
     </div>
+    <a href="https://youtube.com/@Lucidlol09" target="_blank" class="channel-card reveal">
+      <div class="channel-left">
+        <div class="channel-avatar">L</div>
+        <div>
+          <div class="channel-name">Lucidlol</div>
+          <div class="channel-handle">@Lucidlol09</div>
+        </div>
+      </div>
+      <div class="channel-stats">
+        <span>229 subscribers</span>
+        <span class="channel-dot">·</span>
+        <span>29 videos</span>
+      </div>
+    </a>
   </section>
 
   <footer>
