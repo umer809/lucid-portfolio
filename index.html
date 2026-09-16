@@ -28,7 +28,6 @@
       color: var(--white);
       font-family: 'Space Grotesk', sans-serif;
       overflow-x: hidden;
-      cursor: none;
     }
 
     ::selection { background: var(--cream); color: var(--black); }
@@ -39,26 +38,6 @@
       position: fixed; inset: 0;
       background: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
       pointer-events: none; z-index: 9999;
-    }
-
-    /* ── CURSOR ── */
-    .cursor { position: fixed; pointer-events: none; z-index: 10000; mix-blend-mode: difference; }
-    .cursor-dot {
-      width: 8px; height: 8px; background: var(--cream);
-      border-radius: 50%; position: absolute;
-      transform: translate(-50%, -50%);
-      transition: transform 0.1s;
-    }
-    .cursor-ring {
-      width: 40px; height: 40px;
-      border: 1px solid rgba(200,184,138,0.4);
-      border-radius: 50%; position: absolute;
-      transform: translate(-50%, -50%);
-      transition: width 0.3s, height 0.3s, border-color 0.3s;
-    }
-    .cursor-ring.hover {
-      width: 70px; height: 70px;
-      border-color: var(--cream);
     }
 
     /* ── PRELOADER ── */
@@ -447,12 +426,6 @@
     </div>
   </div>
 
-  <!-- CURSOR -->
-  <div class="cursor" id="cursor">
-    <div class="cursor-dot" id="cursorDot"></div>
-    <div class="cursor-ring" id="cursorRing"></div>
-  </div>
-
   <!-- NAV -->
   <nav>
     <div class="logo">LUCID</div>
@@ -619,27 +592,6 @@
       });
     }
 
-    // ── CURSOR ──
-    const dot = document.getElementById('cursorDot');
-    const ring = document.getElementById('cursorRing');
-    let cx = 0, cy = 0, rx = 0, ry = 0;
-    document.addEventListener('mousemove', e => {
-      cx = e.clientX; cy = e.clientY;
-      dot.style.left = cx + 'px'; dot.style.top = cy + 'px';
-    });
-    function animRing() {
-      rx += (cx - rx) * 0.12;
-      ry += (cy - ry) * 0.12;
-      ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
-      requestAnimationFrame(animRing);
-    }
-    animRing();
-
-    document.querySelectorAll('a, .gallery-item, .copy-btn, .skill-tag, .contact-card, .lightbox-x').forEach(el => {
-      el.addEventListener('mouseenter', () => ring.classList.add('hover'));
-      el.addEventListener('mouseleave', () => ring.classList.remove('hover'));
-    });
-
     // ── REVEAL ──
     const revObs = new IntersectionObserver((entries) => {
       entries.forEach(e => {
@@ -653,7 +605,7 @@
       { file: 'thumb1.png' },
       { file: 'thumb2.png' },
       { file: 'thumb3.png' },
-      { file: 'thumb4.jpg' },
+      { file: 'thumb4.png' },
     ];
 
     const gallery = document.getElementById('gallery');
